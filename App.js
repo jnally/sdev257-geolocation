@@ -1,6 +1,5 @@
-/* second bit of code from textbook */
-
-import React, { useEffect } from "react";
+/* Module 04 Assignment - Geo-location */
+import React, { useEffect, useState } from "react";
 import { View, StatusBar } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
@@ -9,9 +8,30 @@ import styles from "./styles";
 StatusBar.setBarStyle("dark-content");
 
 export default function App() {
+  // Store user's current GPS coordinates
+  const [latitude, setLatitude] = useState();
+  const [longitude, setLongitude] = useState();
+
+  // Wait for permission then get current location
   useEffect(() => {
-    Location.requestForegroundPermissionsAsync();
+    function setPosition({ coords: { latitude, longitude } }) {
+      setLatitude(latitude);
+      setLongitude(longitude);
+    }
+
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status === "granted") {
+        const currentLocation = await Location.getCurrentPositionAsync();
+        setPosition(currentLocation);
+      }
+    })();
   }, []);
+
+  // Wait for GPS coordinates before rendering map
+  if (!latitude || !longitude) {
+    return null;
+  }
 
   return (
     <View style={styles.container}>
@@ -21,67 +41,22 @@ export default function App() {
         showsUserLocation
         followsUserLocation
         initialRegion={{
-          latitude: 43.841,
-          longitude: -79.0857,
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01,
+          latitude,
+          longitude,
+          latitudeDelta: 0.08,
+          longitudeDelta: 0.08,
         }}
       >
+        {/* Highlight one nearby restaurant */}
         <Marker
-          title="Duff Brewery"
-          description="Duff beer for me, Duff beer for you"
+          title="Salvatori's New Haven"
+          description="Original Salvatori's Italian restaurant."
           coordinate={{
-            latitude: 43.8418728,
-            longitude: -79.086082,
-          }}
-        />
-        <Marker
-          title="Pawtucket Brewery"
-          description="New! Patriot Light!"
-          coordinate={{
-            latitude: 43.8401328,
-            longitude: -79.085407,
+            latitude: 41.06255967135679,
+            longitude: -84.98182383362749,
           }}
         />
       </MapView>
     </View>
   );
 }
-
-/* first code from textbook */
-/*import React from "react";
-import { View, StatusBar } from "react-native";
-import MapView from "react-native-maps";
-import styles from "./styles";
-
-StatusBar.setBarStyle("dark-content");
-
-export default () => (
-  <View style={styles.container}>
-    <MapView style={styles.mapView} showsUserLocation
-      followUserLocation />
-  </View>
-); 
-*/
-/* comment out the template
-
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
-
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});*/
